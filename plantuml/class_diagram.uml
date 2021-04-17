@@ -1,0 +1,25 @@
+@startuml
+
+class CandidateController {
+    - ICandidateService candidateService
+    Candidate GetCandidate(int id) [GET /candidates/{id}]
+    Candidate AddCandidate([FromBody] Candidate candidate) [POST /candidates/]
+    void UpdateCandidate(int id, [FromBody] Candidate candidate) [PUT /candidates/{id}]
+    void DeleteCandidate(int id) [DELETE /candidates/{id}]
+}
+
+class Candidate {
+    int Id
+    string Name
+    bool OfferedPosition
+}
+
+interface ICandidateService {
+    bool CandidateExists(int id)
+    Candidate GetCandidate(int id)
+    Candidate CreateCandidate(Candidate candidate)
+    void UpdateCandidate(Candidate candidate)
+    void DeleteCandidate(int id)
+}
+
+@enduml
