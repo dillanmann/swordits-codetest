@@ -16,6 +16,7 @@ class Candidate {
 
 interface ICandidateService {
     bool CandidateExists(int id)
+    Candidate[] GetAllCandidates()
     Candidate GetCandidate(int id)
     Candidate CreateCandidate(Candidate candidate)
     void UpdateCandidate(Candidate candidate)

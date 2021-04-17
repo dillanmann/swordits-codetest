@@ -8,7 +8,7 @@ namespace SwordITS.CodeTest.Model
 
         public string Name { get; init; }
 
-        public bool OfferedPosition { get; init; }
+        public bool? OfferedPosition { get; init; }
 
         public override bool Equals(object obj)
         {
