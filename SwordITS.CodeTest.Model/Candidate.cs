@@ -8,19 +8,19 @@ namespace SwordITS.CodeTest.Model
 
         public string Name { get; init; }
 
-        public bool? OfferedPosition { get; init; }
+        public CandidateOfferStatus? OfferStatus { get; init; }
 
         public override bool Equals(object obj)
         {
             return obj is Candidate candidate &&
                    Id == candidate.Id &&
                    Name == candidate.Name &&
-                   OfferedPosition == candidate.OfferedPosition;
+                   OfferStatus == candidate.OfferStatus;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id, Name, OfferedPosition);
+            return HashCode.Combine(Id, Name, OfferStatus);
         }
     }
 }
