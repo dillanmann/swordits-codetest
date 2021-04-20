@@ -1,40 +1,44 @@
 namespace SwordITS.CodeTest.Services.Tests
 {
     using SwordITS.CodeTest.Services;
+    using SwordITS.CodeTest.Services.Validation;
     using SwordITS.CodeTest.Model;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using NUnit.Framework;
+    using Moq;
 
     public class InMemoryCandidateServiceTests
     {
         private ICandidateService candidateService;
+        private Mock<IDataValidator<Candidate>> candidateValidator;
         private static List<Candidate> candidates = new List<Candidate>
         {
             new Candidate()
             {
                 Id = 1,
                 Name = "Bob LeBlaw",
-                OfferedPosition = null
+                OfferStatus = CandidateOfferStatus.NoDecisionMade
             },
             new Candidate()
             {
                 Id = 2,
                 Name = "Pepe LePew",
-                OfferedPosition = false
+                OfferStatus = CandidateOfferStatus.PositionOffered
             },
         };
 
         [SetUp]
         public void Setup()
         {
+            this.candidateValidator = new Mock<IDataValidator<Candidate>>();
         }
 
         [Test]
         public void CandidateExistsTest_CandidateExists_ReturnsTrue()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
             Assert.IsTrue(candidateService.CandidateExists(1));
         }
@@ -42,7 +46,7 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void CandidateExistsTest_CandidateDoesNotExist_ReturnsFalse()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
             Assert.IsFalse(candidateService.CandidateExists(3));
         }
@@ -50,7 +54,7 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void GetAllCandidatesTest()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
             IEnumerable<Candidate> fetchedCandidates = this.candidateService.GetAllCandidates();
 
@@ -61,7 +65,7 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void GetCandidateTest_CandidateExists_ReturnsCandidate()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
             Candidate fetchedCandidate = this.candidateService.GetCandidate(1);
 
@@ -71,7 +75,7 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void GetCandidateTest_CandidateDoesNotExist_ThrowsException()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
             Assert.Throws<KeyNotFoundException>(() => this.candidateService.GetCandidate(3));
         }
@@ -79,7 +83,7 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void DeleteCandidateTest_CandidateExists_DeletesCandidate()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
             this.candidateService.DeleteCandidate(1);
             IEnumerable<Candidate> fetchedCandidates = this.candidateService.GetAllCandidates();
@@ -91,21 +95,22 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void DeleteCandidateTest_CandidateDoesNotExist_ThrowsException()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
-            Assert.Throws<KeyNotFoundException>(() => this.candidateService.DeleteCandidate(3));
+            Assert.Throws<ArgumentException>(() => this.candidateService.DeleteCandidate(3));
         }
 
         [Test]
         public void CreateCandidateTest_ValidCandidate_CandidateIsAdded()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
             Candidate newCandidate = new Candidate
             {
                 Id = 3,
                 Name = "John Doe",
-                OfferedPosition = null
+                OfferStatus = CandidateOfferStatus.NoDecisionMade
             };
+            this.candidateValidator.Setup(validator => validator.IsValid(newCandidate)).Returns(true);
 
             this.candidateService.CreateCandidate(newCandidate);
             IEnumerable<Candidate> fetchedCandidates = this.candidateService.GetAllCandidates();
@@ -117,12 +122,12 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void CreateCandidateTest_CandidateAlreadyExists_ThrowsException()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
             Candidate newCandidate = new Candidate
             {
                 Id = 1,
                 Name = "John Doe",
-                OfferedPosition = null
+                OfferStatus = CandidateOfferStatus.NoDecisionMade
             };
 
             Assert.Throws<ArgumentException>(() => this.candidateService.CreateCandidate(newCandidate));
@@ -133,13 +138,14 @@ namespace SwordITS.CodeTest.Services.Tests
         [TestCase(null, Description="Null")]
         public void CreateCandidateTest_InvalidCandidateName_ThrowsException(string name)
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
             Candidate newCandidate = new Candidate
             {
                 Id = 3,
                 Name = name,
-                OfferedPosition = null
+                OfferStatus = CandidateOfferStatus.NoDecisionMade
             };
+            this.candidateValidator.Setup(validator => validator.IsValid(newCandidate)).Returns(false);
 
             Assert.Throws<ArgumentException>(() => this.candidateService.CreateCandidate(newCandidate));
         }
@@ -147,12 +153,12 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void UpdateCandidateTest_CandidateDoesNotExist_ThrowsException()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
             Candidate newCandidate = new Candidate
             {
                 Id = 3,
                 Name = "John Doe",
-                OfferedPosition = null
+                OfferStatus = CandidateOfferStatus.NoDecisionMade
             };
 
             Assert.Throws<ArgumentException>(() => this.candidateService.UpdateCandidate(newCandidate));
@@ -161,13 +167,15 @@ namespace SwordITS.CodeTest.Services.Tests
         [Test]
         public void UpdateCandidateTest_ValidCandidate_UpdatesCandidate()
         {
-            this.candidateService = new InMemoryCandidateService(candidates);
+            this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
             Candidate newCandidate = new Candidate
             {
                 Id = 1,
                 Name = "Bob LeBlaw",
-                OfferedPosition = true
+                OfferStatus = CandidateOfferStatus.PositionOffered
             };
+            this.candidateValidator.Setup(validator => validator.IsValid(newCandidate)).Returns(true);
+
 
             this.candidateService.UpdateCandidate(newCandidate);
             IEnumerable<Candidate> fetchedCandidates = this.candidateService.GetAllCandidates();
