@@ -22,7 +22,11 @@ namespace SwordITS.CodeTest.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+            .AddJsonOptions(opts => 
+            {
+                opts.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+            });
             services.AddTransient<IDataValidator<Candidate>, CandidateValidator>();
             services.AddSingleton<ICandidateService, InMemoryCandidateService>();
             services.AddSwaggerGen(c =>
