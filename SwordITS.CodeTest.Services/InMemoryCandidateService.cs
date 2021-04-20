@@ -4,6 +4,7 @@ namespace SwordITS.CodeTest.Services
     using System.Collections.Generic;
     using System.Linq;
     using SwordITS.CodeTest.Model;
+    using SwordITS.CodeTest.Services.Exceptions;
     using SwordITS.CodeTest.Services.Validation;
 
     public class InMemoryCandidateService : ICandidateService
@@ -24,12 +25,12 @@ namespace SwordITS.CodeTest.Services
             int candidateId = candidate.Id;
             if (this.CandidateExists(candidateId))
             {
-                throw new ArgumentException($"Candidate with id `{candidateId}` already exists.");
+                throw new CandidateAlreadyExistsException($"Candidate with id `{candidateId}` already exists.");
             }
 
             if (!this.candidateValidator.IsValid(candidate))
             {
-                throw new ArgumentException($"Provided candidate is not valid.");
+                throw new CandidateValidationFailedException($"Provided candidate is not valid.");
             }
 
             this.candidates.Add(candidate);
@@ -40,7 +41,7 @@ namespace SwordITS.CodeTest.Services
         {
             if (!this.CandidateExists(id))
             {
-                throw new ArgumentException($"Candidate with id `{id}` does not exist.");
+                throw new CandidateNotFoundException($"Candidate with id `{id}` does not exist.");
             }
 
             int candidateIndex = this.candidates.FindIndex(cand => cand.Id == id);
@@ -53,7 +54,7 @@ namespace SwordITS.CodeTest.Services
         {
             if (!this.CandidateExists(id))
             {
-                throw new KeyNotFoundException($"Candidate with id `{id}` does not exist.");
+                throw new CandidateNotFoundException($"Candidate with id `{id}` does not exist.");
             }
 
             return this.candidates.Single(cand => cand.Id == id);
@@ -64,12 +65,12 @@ namespace SwordITS.CodeTest.Services
             int candidateId = candidate.Id;
             if (!this.CandidateExists(candidateId))
             {
-                throw new ArgumentException($"Candidate with id `{candidateId}` does not exist.");
+                throw new CandidateNotFoundException($"Candidate with id `{candidateId}` does not exist.");
             }
 
             if (!this.candidateValidator.IsValid(candidate))
             {
-                throw new ArgumentException($"Provided candidate is not valid.");
+                throw new CandidateValidationFailedException($"Provided candidate is not valid.");
             }
 
             Candidate existingCandidate = this.candidates.Single(cand => cand.Id == candidateId);

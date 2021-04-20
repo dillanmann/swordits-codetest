@@ -1,6 +1,7 @@
 namespace SwordITS.CodeTest.Services.Tests
 {
     using SwordITS.CodeTest.Services;
+    using SwordITS.CodeTest.Services.Exceptions;
     using SwordITS.CodeTest.Services.Validation;
     using SwordITS.CodeTest.Model;
     using System;
@@ -77,7 +78,7 @@ namespace SwordITS.CodeTest.Services.Tests
         {
             this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
-            Assert.Throws<KeyNotFoundException>(() => this.candidateService.GetCandidate(3));
+            Assert.Throws<CandidateNotFoundException>(() => this.candidateService.GetCandidate(3));
         }
 
         [Test]
@@ -97,7 +98,7 @@ namespace SwordITS.CodeTest.Services.Tests
         {
             this.candidateService = new InMemoryCandidateService(this.candidateValidator.Object, candidates);
 
-            Assert.Throws<ArgumentException>(() => this.candidateService.DeleteCandidate(3));
+            Assert.Throws<CandidateNotFoundException>(() => this.candidateService.DeleteCandidate(3));
         }
 
         [Test]
@@ -130,7 +131,7 @@ namespace SwordITS.CodeTest.Services.Tests
                 OfferStatus = CandidateOfferStatus.NoDecisionMade
             };
 
-            Assert.Throws<ArgumentException>(() => this.candidateService.CreateCandidate(newCandidate));
+            Assert.Throws<CandidateAlreadyExistsException>(() => this.candidateService.CreateCandidate(newCandidate));
         }
 
         [TestCase("", Description="Empty")]
@@ -147,7 +148,7 @@ namespace SwordITS.CodeTest.Services.Tests
             };
             this.candidateValidator.Setup(validator => validator.IsValid(newCandidate)).Returns(false);
 
-            Assert.Throws<ArgumentException>(() => this.candidateService.CreateCandidate(newCandidate));
+            Assert.Throws<CandidateValidationFailedException>(() => this.candidateService.CreateCandidate(newCandidate));
         }
 
         [Test]
@@ -161,7 +162,7 @@ namespace SwordITS.CodeTest.Services.Tests
                 OfferStatus = CandidateOfferStatus.NoDecisionMade
             };
 
-            Assert.Throws<ArgumentException>(() => this.candidateService.UpdateCandidate(newCandidate));
+            Assert.Throws<CandidateNotFoundException>(() => this.candidateService.UpdateCandidate(newCandidate));
         }
 
         [Test]

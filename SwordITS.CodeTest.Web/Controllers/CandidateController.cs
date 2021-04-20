@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SwordITS.CodeTest.Model;
 using SwordITS.CodeTest.Services;
+using SwordITS.CodeTest.Services.Exceptions;
 
 namespace SwordITS.CodeTest.Web.Controllers
 {
@@ -29,60 +30,63 @@ namespace SwordITS.CodeTest.Web.Controllers
         [HttpGet("{id}")]
         public ActionResult<Candidate> GetById(int id)
         {
-            if (!this.candidateService.CandidateExists(id))
+            try
             {
-                return NotFound();
+                return Ok(this.candidateService.GetCandidate(id));
             }
-
-            return Ok(this.candidateService.GetCandidate(id));
+            catch (CandidateNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            if (!this.candidateService.CandidateExists(id))
+            try
             {
-                return NotFound();
+                this.candidateService.DeleteCandidate(id);
+                return NoContent();
             }
-
-            this.candidateService.DeleteCandidate(id);
-
-            return NoContent();
+            catch (CandidateNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpPost]
         public ActionResult<Candidate> Create(Candidate candidate)
         {
-            if (this.candidateService.CandidateExists(candidate.Id))
-            {
-                return BadRequest($"User with id `{candidate.Id}` already exists.");
-            }
-
-            Candidate createdCandidate = null;
             try
             {
-                createdCandidate = this.candidateService.CreateCandidate(candidate);
+                Candidate createdCandidate = this.candidateService.CreateCandidate(candidate);
+                return Ok(createdCandidate);
             }
-            catch (ArgumentException ex)
+            catch (CandidateAlreadyExistsException ex)
             {
                 return BadRequest(ex.Message);
             }
-
-            return createdCandidate;
         }
 
         [HttpPut("{id}")]
         public ActionResult Update(int id, Candidate candidate)
         {
-            if (this.candidateService.CandidateExists(id))
+            try 
             {
-                this.candidateService.UpdateCandidate(candidate);
-                
-                return NoContent();
-            }
+                if (this.candidateService.CandidateExists(id))
+                {
+                    this.candidateService.UpdateCandidate(candidate);
+                    
+                    return NoContent();
+                }
 
-            this.candidateService.CreateCandidate(candidate);
-            return CreatedAtAction(nameof(GetById), new { id = id }, candidate);
+                this.candidateService.CreateCandidate(candidate);
+                return CreatedAtAction(nameof(GetById), new { id = id }, candidate);
+            }
+            catch (CandidateValidationFailedException ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
     }
