@@ -1,4 +1,4 @@
 Nice to have / To do:
-- Use DTO to translate from DAL to API
+- Use DTO to translate from DAL/Model to WebAPI
 - Custom exceptions for services (e.g. CandidateAlreadyExistsException)
 - Tests for validation logic in service (e.g. empty name)
